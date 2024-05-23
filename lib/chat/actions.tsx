@@ -8,7 +8,61 @@ import {
   streamUI,
   createStreamableValue
 } from 'ai/rsc'
-import { openai } from '@ai-sdk/openai'
+
+//import { openai } from '@ai-sdk/openai'
+
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+async function createThread() {
+  const thread = await openai.beta.threads.create();
+  return thread.id;
+}
+
+const threadId = createThread();
+
+/*
+import { Message, useAssistant } from 'ai/react';
+export default function Chat() {
+  const assistantId = 'your-existing-assistant-id';
+  const { status, messages, input, submitMessage, handleInputChange } =
+    useAssistant({ api: `/api/assistant/${assistantId}` });
+
+  return (
+    <div>
+      {messages.map((m: Message) => (
+        <div key={m.id}>
+          <strong>{`${m.role}: `}</strong>
+          {m.role !== 'data' && m.content}
+          {m.role === 'data' && (
+            <>
+              {(m.data as any).description}
+              <br />
+              <pre className={'bg-gray-200'}>
+                {JSON.stringify(m.data, null, 2)}
+              </pre>
+            </>
+          )}
+        </div>
+      ))}
+
+      {status === 'in_progress' && <div />}
+
+      <form onSubmit={submitMessage}>
+        <input
+          disabled={status !== 'awaiting_message'}
+          value={input}
+          placeholder="What is the temperature in the living room?"
+          onChange={handleInputChange}
+        />
+      </form>
+    </div>
+  );
+}
+*/
 
 import {
   spinner,
@@ -123,27 +177,20 @@ async function submitUserMessage(content: string) {
     ]
   })
 
+  await openai.beta.threads.messages.create(threadId, {
+    role: 'user',
+    content
+  });
+
   let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
   let textNode: undefined | React.ReactNode
 
   const result = await streamUI({
-    model: openai('gpt-3.5-turbo'),
+    assistant: {
+      id: 'asst_LLM5oKBkS41QIduCEJmtN09e',
+      threadId,
+    },
     initial: <SpinnerMessage />,
-    system: `\
-    You are a stock trading conversation bot and you can help users buy stocks, step by step.
-    You and the user can discuss stock prices and the user can adjust the amount of stocks they want to buy, or place an order, in the UI.
-    
-    Messages inside [] means that it's a UI element or a user event. For example:
-    - "[Price of AAPL = 100]" means that an interface of the stock price of AAPL is shown to the user.
-    - "[User has changed the amount of AAPL to 10]" means that the user has changed the amount of AAPL to 10 in the UI.
-    
-    If the user requests purchasing a stock, call \`show_stock_purchase_ui\` to show the purchase UI.
-    If the user just wants the price, call \`show_stock_price\` to show the price.
-    If you want to show trending stocks, call \`list_stocks\`.
-    If you want to show events, call \`get_events\`.
-    If the user wants to sell stock, or complete another impossible task, respond that you are a demo and cannot do that.
-    
-    Besides that, you can also chat with users and do some calculations if needed.`,
     messages: [
       ...aiState.get().messages.map((message: any) => ({
         role: message.role,
