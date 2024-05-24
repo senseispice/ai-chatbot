@@ -1,3 +1,4 @@
+
 import {
   createAI,
   createStreamableUI,
@@ -140,14 +141,8 @@ async function submitUserMessage(content: string) {
 
     await openai.beta.threads.messages.create(thread.id, { role: 'user', content })
 
-    const assistantId = process.env.ASSISTANT_ID;
-
-    if (!assistantId) {
-      throw new Error('OPENAI_ASSISTANT_ID environment variable is not set');
-    }
-
     const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
-      assistant_id: assistantId,
+      assistant_id: 'asst_iRqfOKF790C7iLhpvuRkdXbj'
     })
 
     if (run.status === 'completed') {
@@ -174,130 +169,6 @@ async function submitUserMessage(content: string) {
         })
 
         updateTextStream(assistantResponse)
-
-        // Check if the assistant response contains tool calls
-        const toolCalls = assistantMessage.content.filter(item => item.type === 'tool-call')
-        if (toolCalls.length > 0) {
-          // Handle tool calls
-          for (const toolCall of toolCalls) {
-            switch (toolCall.toolName) {
-              case 'listStocks':
-                const stocks = toolCall.args.stocks
-                // Simulate stock listing process
-                await sleep(2000)
-                aiState.done({
-                  ...aiState.get(),
-                  messages: [
-                    ...aiState.get().messages,
-                    {
-                      id: nanoid(),
-                      role: 'tool',
-                      content: {
-                        type: 'tool-result',
-                        toolName: 'listStocks',
-                        result: stocks
-                      }
-                    }
-                  ]
-                })
-                break
-              case 'showStockPrice':
-                const { symbol, price, delta } = toolCall.args
-                // Simulate getting stock price
-                await sleep(2000)
-                aiState.done({
-                  ...aiState.get(),
-                  messages: [
-                    ...aiState.get().messages,
-                    {
-                      id: nanoid(),
-                      role: 'tool',
-                      content: {
-                        type: 'tool-result',
-                        toolName: 'showStockPrice',
-                        result: { symbol, price, delta }
-                      }
-                    }
-                  ]
-                })
-                break
-              case 'showStockPurchase':
-                const { symbol: purchaseSymbol, price: purchasePrice, numberOfShares } = toolCall.args
-                // Simulate showing stock purchase
-                await sleep(2000)
-                if (numberOfShares <= 0 || numberOfShares > 1000) {
-                  aiState.done({
-                    ...aiState.get(),
-                    messages: [
-                      ...aiState.get().messages,
-                      {
-                        id: nanoid(),
-                        role: 'tool',
-                        content: {
-                          type: 'tool-result',
-                          toolName: 'showStockPurchase',
-                          result: {
-                            symbol: purchaseSymbol,
-                            price: purchasePrice,
-                            numberOfShares,
-                            status: 'expired'
-                          }
-                        }
-                      },
-                      {
-                        id: nanoid(),
-                        role: 'system',
-                        content: '[User has selected an invalid amount]'
-                      }
-                    ]
-                  })
-                } else {
-                  aiState.done({
-                    ...aiState.get(),
-                    messages: [
-                      ...aiState.get().messages,
-                      {
-                        id: nanoid(),
-                        role: 'tool',
-                        content: {
-                          type: 'tool-result',
-                          toolName: 'showStockPurchase',
-                          result: {
-                            symbol: purchaseSymbol,
-                            price: purchasePrice,
-                            numberOfShares
-                          }
-                        }
-                      }
-                    ]
-                  })
-                }
-                break
-              case 'getEvents':
-                const events = toolCall.args.events
-                // Simulate getting events
-                await sleep(2000)
-                aiState.done({
-                  ...aiState.get(),
-                  messages: [
-                    ...aiState.get().messages,
-                    {
-                      id: nanoid(),
-                      role: 'tool',
-                      content: {
-                        type: 'tool-result',
-                        toolName: 'getEvents',
-                        result: events
-                      }
-                    }
-                  ]
-                })
-                break
-              default:
-                break
-            }
-          }
-        }
 
         return {
           id: nanoid(),
