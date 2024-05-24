@@ -4,7 +4,6 @@ import * as React from 'react';
 import Textarea from 'react-textarea-autosize';
 import { useActions, useUIState } from 'ai/rsc';
 import { BotMessage, UserMessage } from './stocks/message';
-import { AI, uploadFile } from '@/lib/chat/actions';
 import { Button } from '@/components/ui/button';
 import { IconArrowElbow, IconPlus } from '@/components/ui/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
