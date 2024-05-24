@@ -4,7 +4,7 @@ import * as React from 'react';
 import Textarea from 'react-textarea-autosize';
 import { useActions, useUIState } from 'ai/rsc';
 import { BotMessage, UserMessage } from './stocks/message';
-import { AI } from '@/lib/chat/actions';
+import { openai } from '@/lib/chat/actions';
 import { Button } from '@/components/ui/button';
 import { IconArrowElbow, IconPlus } from '@/components/ui/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -25,7 +25,7 @@ export function PromptForm({
   const hiddenFileInput = React.useRef<HTMLInputElement>(null);
 
   const { submitUserMessage } = useActions();
-  const [_, setMessages] = useUIState<AI>();
+  const [_, setMessages] = useUIState<openai>();
   const [file, setFile] = React.useState<File | null>(null);
 
   React.useEffect(() => {
